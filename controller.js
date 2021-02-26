@@ -34,3 +34,22 @@ exports.showMahasiswaById = function (req, res) {
     }
   );
 };
+
+// add mahasiswa data
+exports.addMahasiswa = function (req, res) {
+  var nim = req.body.nim;
+  var nama = req.body.nama;
+  var prodi = req.body.prodi;
+
+  connection.query(
+    "INSERT INTO mahasiswa (nim,nama,prodi) VALUES (?,?,?)",
+    [nim, nama, prodi],
+    function (err, rows, fileds) {
+      if (err) {
+        console.log(err);
+      } else {
+        response.ok("Sucess Insert data", res);
+      }
+    }
+  );
+};

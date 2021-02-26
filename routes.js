@@ -5,4 +5,5 @@ module.exports = function (app) {
   app.route("/").get(myJson.index);
   app.route("/show").get(myJson.showAllMahasiswa);
   app.route("/show/:id").get(myJson.showMahasiswaById);
+  app.route("/add").post(myJson.addMahasiswa);
 };
