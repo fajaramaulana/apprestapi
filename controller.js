@@ -48,7 +48,7 @@ exports.addMahasiswa = function (req, res) {
       if (err) {
         console.log(err);
       } else {
-        response.ok("Sucess Insert data", res);
+        response.ok("Success Insert data", res);
       }
     }
   );
@@ -68,7 +68,24 @@ exports.editMahasiswa = function (req, res) {
       if (err) {
         console.log(err);
       } else {
-        response.ok("Sucess Edit Data", res);
+        response.ok("Success Edit Data", res);
+      }
+    }
+  );
+};
+
+// delete mahasiswa data by id
+exports.deleteMahasiswa = function (req, res) {
+  let id = req.body.id;
+
+  connection.query(
+    "DELETE FROM mahasiswa WHERE id=?",
+    [id],
+    function (err, rows, fields) {
+      if (err) {
+        console.log(err);
+      } else {
+        response.ok("Success Delete Data", res);
       }
     }
   );
