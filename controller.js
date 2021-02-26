@@ -1,7 +1,7 @@
 "use strict";
 
-var response = require("./res");
-var connection = require("./connection");
+let response = require("./res");
+let connection = require("./connection");
 
 exports.index = function (req, res) {
   response.ok("REST API RUNNING !", res);
@@ -37,9 +37,9 @@ exports.showMahasiswaById = function (req, res) {
 
 // add mahasiswa data
 exports.addMahasiswa = function (req, res) {
-  var nim = req.body.nim;
-  var nama = req.body.nama;
-  var prodi = req.body.prodi;
+  let nim = req.body.nim;
+  let nama = req.body.nama;
+  let prodi = req.body.prodi;
 
   connection.query(
     "INSERT INTO mahasiswa (nim,nama,prodi) VALUES (?,?,?)",
@@ -49,6 +49,26 @@ exports.addMahasiswa = function (req, res) {
         console.log(err);
       } else {
         response.ok("Sucess Insert data", res);
+      }
+    }
+  );
+};
+
+// edit mahasiswa data by id
+exports.editMahasiswa = function (req, res) {
+  let id = req.body.id;
+  let nim = req.body.nim;
+  let nama = req.body.nama;
+  let prodi = req.body.prodi;
+
+  connection.query(
+    "UPDATE mahasiswa SET nim=?, nama=?, prodi=? WHERE id=?",
+    [nim, nama, prodi, id],
+    function (err, rows, fields) {
+      if (err) {
+        console.log(err);
+      } else {
+        response.ok("Sucess Edit Data", res);
       }
     }
   );

@@ -1,7 +1,7 @@
 "use strict";
 
 exports.ok = function (values, res) {
-  var data = {
+  let data = {
     status: 200,
     value: values,
   };

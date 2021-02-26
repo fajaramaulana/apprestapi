@@ -7,7 +7,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 // call routes
-var routes = require("./routes");
+let routes = require("./routes");
 routes(app);
 
 app.listen(3000, () => {
