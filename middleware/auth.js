@@ -42,3 +42,52 @@ exports.register = function (req, res) {
     }
   });
 };
+
+// login controller
+exports.login = function (req, res) {
+  let post = {
+    email: req.body.email,
+    password: req.body.password,
+  };
+
+  let query = "SELECT * FROM ?? WHERE ??=? AND ??=?";
+  let table = ["user", "email", post.email, "password", md5(post.password)];
+  query = mysql.format(query, table);
+
+  conn.query(query, function (err, rows) {
+    if (err) {
+      console.log(err);
+    } else {
+      if (rows.length == 1) {
+        let token = jwt.sign({ rows }, config.secret, {
+          expiresIn: 1500,
+        });
+        id_user = rows[0].id;
+        let data = {
+          id_user: id_user,
+          access_token: token,
+          ip_address: ip.address(),
+        };
+
+        let query = "INSERT INTO ?? SET ?";
+        let table = ["access_token"];
+
+        insertAccessToken = mysql.format(query, table);
+        conn.query(insertAccessToken, data, function (err, rows) {
+          if (err) {
+            console.log(err);
+          } else {
+            res.json({
+              success: true,
+              message: "JWT has been created",
+              token: token,
+              currUser: data.id_user,
+            });
+          }
+        });
+      } else {
+        res.json({ Error: true, Message: "Email or Password Incorrect" });
+      }
+    }
+  });
+};
