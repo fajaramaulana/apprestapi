@@ -1,10 +1,46 @@
-let conn = require("../connection");
-let mysql = require("mysql");
-let md5 = require("md5");
-let response = require("../res");
-let jwt = require("jsonwebtoken");
-let config = require("../config/secret");
-let ip = require("ip");
+const conn = require("../connection");
+const mysql = require("mysql");
+const md5 = require("md5");
+const response = require("../res");
+const jwt = require("jsonwebtoken");
+const config = require("../config/secret");
+const ip = require("ip");
+const nodemailer = require("nodemailer");
+const secretEmail = require("./secret"); // not included for security reason
+
+let smtpTransport = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: secretEmail.email,
+    pass: secretEmail.pass,
+  },
+});
+
+let rand, mailOptions, host, link;
+
+exports.verification = function (req, res) {
+  console.log(req.protocol);
+  if (req.protocol + "://" + req.get("host") == "http://" + host) {
+    if (req.query.id == rand) {
+      conn.query(
+        "UPDATE user SET isVerified=? WHERE email=?",
+        [1, mailOptions.to],
+        function (err, rows, fileds) {
+          if (err) {
+            console.log(err);
+          } else {
+            response.ok("Sucess change verification data", res);
+          }
+        }
+      );
+      res.end(`<h1>email anda ${mailOptions.to} telah terverifikasi</h1>`);
+    } else {
+      res.end(`<h1>email anda ${mailOptions.to} tidak terverifikasi</h1>`);
+    }
+  }
+};
 
 // reqister controller
 exports.register = function (req, res) {
@@ -14,6 +50,7 @@ exports.register = function (req, res) {
     password: md5(req.body.password),
     role: req.body.role,
     created_at: new Date(),
+    isVerified: 0,
   };
 
   let checkEmail = "SELECT email FROM ?? WHERE ??=?";
@@ -33,6 +70,27 @@ exports.register = function (req, res) {
           if (err) {
             console.log(err);
           } else {
+            rand = Math.floor(Math.random() * 100 + 54);
+            host = "localhost:3001";
+            link = "http://" + host + "/auth/verify?id=" + rand;
+            mailOptions = {
+              from: '"Admin Verifikasi" <fajar@fajarr.com>',
+              to: post.email,
+              subject: "Verifikasi pendaftaran akun",
+              text: "Please verify your account now!", // plain text body
+              html: `Hallo, <br> Please klik tautan verifikasi berikut <br>
+              <a href="${link}">Click here to verifikasi</a>`,
+            };
+
+            smtpTransport.sendMail(mailOptions, function (error, response) {
+              if (error) {
+                res.end("error");
+              } else {
+                response.ok("Berhasil", res);
+                res.end("Sent");
+              }
+            });
+
             response.ok("Insert new user data success", res);
           }
         });
@@ -60,9 +118,12 @@ exports.login = function (req, res) {
     } else {
       if (rows.length == 1) {
         let token = jwt.sign({ rows }, config.secret, {
-          expiresIn: 1500,
+          expiresIn: 10000,
         });
         id_user = rows[0].id;
+        username = rows[0].username;
+        role = rows[0].role;
+        let expired = 10000;
         let data = {
           id_user: id_user,
           access_token: token,
@@ -81,7 +142,10 @@ exports.login = function (req, res) {
               success: true,
               message: "JWT has been created",
               token: token,
+              expires: expired,
               currUser: data.id_user,
+              user: username,
+              role: role,
             });
           }
         });
@@ -94,4 +158,14 @@ exports.login = function (req, res) {
 
 exports.secretPage = function (req, res) {
   response.ok("This page only for user with role 2", res);
+};
+
+exports.adminMahasiswa = function (req, res) {
+  conn.query("SELECT * FROM mahasiswa", function (error, rows, fields) {
+    if (error) {
+      console.log(error);
+    } else {
+      response.ok(rows, res);
+    }
+  });
 };
