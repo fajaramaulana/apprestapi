@@ -30,12 +30,14 @@ exports.verification = function (req, res) {
         function (err, rows, fileds) {
           if (err) {
             console.log(err);
+            res.end(error);
           } else {
-            response.ok("Sucess change verification data", res);
+            res.end(
+              `<h1>email anda ${mailOptions.to} telah terverifikasi</h1>`
+            );
           }
         }
       );
-      res.end(`<h1>email anda ${mailOptions.to} telah terverifikasi</h1>`);
     } else {
       res.end(`<h1>email anda ${mailOptions.to} tidak terverifikasi</h1>`);
     }
@@ -48,7 +50,7 @@ exports.register = function (req, res) {
     username: req.body.username,
     email: req.body.email,
     password: md5(req.body.password),
-    role: req.body.role,
+    role: 3,
     created_at: new Date(),
     isVerified: 0,
   };
@@ -84,18 +86,34 @@ exports.register = function (req, res) {
 
             smtpTransport.sendMail(mailOptions, function (error, response) {
               if (error) {
-                res.end("error");
+                res
+                  .json({
+                    success: false,
+                    isRegistered: false,
+                    message: "Verification email failed to send",
+                  })
+                  .end();
               } else {
-                response.ok("Berhasil", res);
-                res.end("Sent");
+                res
+                  .json({
+                    success: true,
+                    isRegistered: false,
+                    message:
+                      "The verification email has been sent successfully to your email",
+                  })
+                  .end();
               }
             });
-
-            response.ok("Insert new user data success", res);
           }
         });
       } else {
-        response.ok("Email Already Created!", res);
+        res
+          .json({
+            success: false,
+            isRegistered: true,
+            message: "The email is already registered",
+          })
+          .end();
       }
     }
   });
@@ -124,6 +142,7 @@ exports.login = function (req, res) {
         username = rows[0].username;
         role = rows[0].role;
         let expired = 10000;
+        let isVerified = rows[0].isVerified;
         let data = {
           id_user: id_user,
           access_token: token,
@@ -146,6 +165,7 @@ exports.login = function (req, res) {
               currUser: data.id_user,
               user: username,
               role: role,
+              isVerified: isVerified,
             });
           }
         });
