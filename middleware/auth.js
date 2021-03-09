@@ -136,12 +136,12 @@ exports.login = function (req, res) {
     } else {
       if (rows.length == 1) {
         let token = jwt.sign({ rows }, config.secret, {
-          expiresIn: 10000,
+          expiresIn: 24000000,
         });
         id_user = rows[0].id;
         username = rows[0].username;
         role = rows[0].role;
-        let expired = 10000;
+        let expired = 24000000;
         let isVerified = rows[0].isVerified;
         let data = {
           id_user: id_user,
@@ -171,6 +171,76 @@ exports.login = function (req, res) {
         });
       } else {
         res.json({ Error: true, Message: "Email or Password Incorrect" });
+      }
+    }
+  });
+};
+
+exports.changePassword = function (req, res) {
+  // data input
+  let data = {
+    email: req.body.email,
+    currPassword: md5(req.body.currPassword),
+    newPassword: md5(req.body.newPassword),
+  };
+
+  let query = "SELECT email, password FROM ?? WHERE ??=?";
+  let table = ["user", "email", data.email];
+  query = mysql.format(query, table);
+
+  conn.query(query, function (err, rows) {
+    if (err) {
+      console.log(err);
+    } else {
+      if (rows.length === 1) {
+        (email = rows[0].email), (password = rows[0].password);
+
+        if (data.currPassword === password) {
+          if (data.newPassword === data.currPassword) {
+            res
+              .json({
+                success: false,
+                message: "Password baru masih sama dengan password sebelumnya",
+              })
+              .end();
+          } else {
+            conn.query(
+              "UPDATE user SET password=? WHERE email=?",
+              [data.newPassword, email],
+              function (err) {
+                if (err) {
+                  res
+                    .json({
+                      success: false,
+                      message: err,
+                    })
+                    .end();
+                } else {
+                  res
+                    .json({
+                      success: true,
+                      message: "Success Update Password!",
+                    })
+                    .end();
+                }
+              }
+            );
+          }
+        } else {
+          res
+            .json({
+              success: false,
+              message: "Password lama anda salah!",
+            })
+            .end();
+        }
+      } else {
+        res
+          .json({
+            success: false,
+            message: "Incorrect email/password",
+          })
+          .end();
       }
     }
   });

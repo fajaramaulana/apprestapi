@@ -6,6 +6,7 @@ const router = express.Router();
 // daftarkan menu registrasi
 router.post("/api/v1/register", auth.register);
 router.post("/api/v1/login", auth.login);
+router.post("/api/v1/changepassword", verification(1), auth.changePassword);
 
 router.get("/verify/", auth.verification);
 
