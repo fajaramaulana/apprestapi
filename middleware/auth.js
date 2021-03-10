@@ -176,6 +176,26 @@ exports.login = function (req, res) {
   });
 };
 
+exports.adminMahasiswa = function (req, res) {
+  conn.query("SELECT * FROM mahasiswa", function (error, rows, fields) {
+    if (error) {
+      console.log(error);
+    } else {
+      response.ok(rows, res);
+    }
+  });
+};
+
+exports.adminUser = function (req, res) {
+  conn.query("SELECT * FROM user", function (error, rows, fields) {
+    if (error) {
+      console.log(error);
+    } else {
+      response.ok(rows, res);
+    }
+  });
+};
+
 exports.changePassword = function (req, res) {
   // data input
   let data = {
@@ -242,20 +262,6 @@ exports.changePassword = function (req, res) {
           })
           .end();
       }
-    }
-  });
-};
-
-exports.secretPage = function (req, res) {
-  response.ok("This page only for user with role 2", res);
-};
-
-exports.adminMahasiswa = function (req, res) {
-  conn.query("SELECT * FROM mahasiswa", function (error, rows, fields) {
-    if (error) {
-      console.log(error);
-    } else {
-      response.ok(rows, res);
     }
   });
 };
